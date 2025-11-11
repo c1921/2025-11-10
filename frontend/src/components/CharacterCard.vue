@@ -5,6 +5,27 @@ import StatusBar from './StatusBar.vue'
 defineProps<{
   character: Character
 }>()
+
+// 行动类型的中文映射
+const actionLabels: Record<string, string> = {
+  rest: '休息',
+  work: '劳动',
+  eat: '进食',
+  entertainment: '娱乐',
+  idle: '空闲'
+}
+
+// 行动类型的图标映射
+const actionIcons: Record<string, string> = {
+  rest: '😴',
+  work: '💼',
+  eat: '🍽️',
+  entertainment: '🎮',
+  idle: '💤'
+}
+
+const getActionLabel = (action: string) => actionLabels[action] || action
+const getActionIcon = (action: string) => actionIcons[action] || '❓'
 </script>
 
 <template>
@@ -18,13 +39,28 @@ defineProps<{
       </span>
     </div>
 
+    <!-- 当前行动 -->
+    <div
+      class="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200"
+    >
+      <div class="flex items-center justify-between">
+        <span class="text-gray-700 font-medium">
+          {{ getActionIcon(character.current_action) }}
+          {{ getActionLabel(character.current_action) }}
+        </span>
+        <span class="text-sm text-gray-500">
+          {{ character.action_duration }}小时
+        </span>
+      </div>
+    </div>
+
     <p class="text-gray-600 text-sm mb-5 italic">
       {{ character.status_text }}
     </p>
 
     <div class="flex flex-col gap-4">
-      <StatusBar label="疲劳" :value="character.fatigue" :reverse="false" />
-      <StatusBar label="饥饿" :value="character.hunger" :reverse="false" />
+      <StatusBar label="疲劳" :value="character.fatigue" :reverse="true" />
+      <StatusBar label="饥饿" :value="character.hunger" :reverse="true" />
       <StatusBar label="心情" :value="character.mood" :reverse="true" />
     </div>
   </div>

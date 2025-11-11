@@ -1,6 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from typing import List
-from models import Character, Gender
+from models import Character, Gender, ActionType
 from core import GameTime, ConnectionManager
 
 router = APIRouter(prefix="/api", tags=["api"])
@@ -81,3 +81,36 @@ async def toggle_time():
         "data": game_time.get_time_dict()
     })
     return {"status": status, "time": game_time.get_time_dict()}
+
+
+@router.post("/characters/{character_name}/action")
+async def set_character_action(character_name: str, action: str):
+    """手动设置角色行动"""
+    # 查找角色
+    character = None
+    for char in characters:
+        if char.name == character_name:
+            character = char
+            break
+
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+
+    # 验证行动类型
+    try:
+        action_type = ActionType(action)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid action type")
+
+    # 设置行动
+    character.assign_action(action_type)
+
+    # 广播更新
+    await manager.broadcast({
+        "type": "character_action_update",
+        "data": {
+            "character": character.get_status_dict()
+        }
+    })
+
+    return {"status": "success", "character": character.get_status_dict()}

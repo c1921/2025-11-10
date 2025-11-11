@@ -12,6 +12,8 @@ export interface Character {
   fatigue: number
   hunger: number
   mood: number
+  current_action: string
+  action_duration: number
   status_text: string
 }
 

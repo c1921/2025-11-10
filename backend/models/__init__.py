@@ -1,3 +1,3 @@
-from .character import Character, Gender
+from .character import Character, Gender, ActionType
 
-__all__ = ["Character", "Gender"]
+__all__ = ["Character", "Gender", "ActionType"]

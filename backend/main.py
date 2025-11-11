@@ -41,6 +41,9 @@ async def time_loop():
 
             # 更新所有角色状态
             for character in characters:
+                # 自动分配行动
+                character.auto_assign_action()
+                # 更新状态
                 character.update_status()
 
             # 广播时间和角色状态更新给所有客户端
@@ -66,7 +69,7 @@ app.include_router(websocket_router)
 @app.on_event("startup")
 async def startup_event():
     """启动时自动开始时间系统"""
-    game_time.running = True
+    game_time.running = False
     asyncio.create_task(time_loop())
 
 

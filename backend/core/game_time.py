@@ -4,7 +4,7 @@ class GameTime:
         self.day = 1
         self.hour = 0
         self.running = False
-        self.base_hour_duration = 0.2  # 基础每小时200ms
+        self.base_hour_duration = 1  # 基础每小时1s
         self.speed = 1  # 速度倍率：1, 2, 5
         self.hour_duration = self.base_hour_duration / self.speed
 
