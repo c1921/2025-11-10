@@ -9,10 +9,25 @@ interface GameTime {
   speed: number
 }
 
+interface Character {
+  name: string
+  gender: string
+  fatigue: number
+  hunger: number
+  mood: number
+  status_text: string
+}
+
+interface GameUpdate {
+  time: GameTime
+  characters: Character[]
+}
+
 const timeString = ref<string>('第1天 0时')
 const isConnected = ref<boolean>(false)
 const isRunning = ref<boolean>(true)
 const currentSpeed = ref<number>(1)
+const characters = ref<Character[]>([])
 let ws: WebSocket | null = null
 
 const connectWebSocket = () => {
@@ -25,9 +40,14 @@ const connectWebSocket = () => {
 
   ws.onmessage = (event) => {
     const message = JSON.parse(event.data)
-    if (message.type === 'time_update' || message.type === 'speed_update' || message.type === 'status_update') {
+    if (message.type === 'game_update') {
+      const data: GameUpdate = message.data
+      timeString.value = data.time.time_string
+      isRunning.value = data.time.running
+      currentSpeed.value = data.time.speed
+      characters.value = data.characters
+    } else if (message.type === 'speed_update' || message.type === 'status_update') {
       const data: GameTime = message.data
-      timeString.value = data.time_string
       isRunning.value = data.running
       currentSpeed.value = data.speed
     }
@@ -72,6 +92,20 @@ const setSpeed = async (speed: number) => {
   }
 }
 
+const getStatusColor = (value: number, reverse: boolean = false): string => {
+  if (reverse) {
+    // 对于心情，值越高越好
+    if (value > 70) return '#4caf50'
+    if (value > 40) return '#ff9800'
+    return '#f44336'
+  } else {
+    // 对于疲劳和饥饿，值越低越好
+    if (value < 30) return '#4caf50'
+    if (value < 60) return '#ff9800'
+    return '#f44336'
+  }
+}
+
 onMounted(() => {
   connectWebSocket()
 })
@@ -99,6 +133,70 @@ onUnmounted(() => {
       <h1>游戏时间系统</h1>
       <p class="info">一天24小时，每小时200ms</p>
       <p class="info">时间会自动流逝并实时更新</p>
+
+      <!-- 角色状态区域 -->
+      <div class="characters-section">
+        <h2>角色状态</h2>
+        <div class="characters-grid">
+          <div v-for="char in characters" :key="char.name" class="character-card">
+            <div class="character-header">
+              <h3>{{ char.name }}</h3>
+              <span class="gender-badge">{{ char.gender === 'male' ? '♂ 男' : '♀ 女' }}</span>
+            </div>
+            <p class="status-description">{{ char.status_text }}</p>
+
+            <div class="status-bars">
+              <div class="status-bar-item">
+                <div class="status-bar-label">
+                  <span>疲劳</span>
+                  <span :style="{ color: getStatusColor(char.fatigue, false) }">{{ char.fatigue }}</span>
+                </div>
+                <div class="status-bar-bg">
+                  <div
+                    class="status-bar-fill"
+                    :style="{
+                      width: char.fatigue + '%',
+                      backgroundColor: getStatusColor(char.fatigue, false)
+                    }"
+                  ></div>
+                </div>
+              </div>
+
+              <div class="status-bar-item">
+                <div class="status-bar-label">
+                  <span>饥饿</span>
+                  <span :style="{ color: getStatusColor(char.hunger, false) }">{{ char.hunger }}</span>
+                </div>
+                <div class="status-bar-bg">
+                  <div
+                    class="status-bar-fill"
+                    :style="{
+                      width: char.hunger + '%',
+                      backgroundColor: getStatusColor(char.hunger, false)
+                    }"
+                  ></div>
+                </div>
+              </div>
+
+              <div class="status-bar-item">
+                <div class="status-bar-label">
+                  <span>心情</span>
+                  <span :style="{ color: getStatusColor(char.mood, true) }">{{ char.mood }}</span>
+                </div>
+                <div class="status-bar-bg">
+                  <div
+                    class="status-bar-fill"
+                    :style="{
+                      width: char.mood + '%',
+                      backgroundColor: getStatusColor(char.mood, true)
+                    }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="control-panel">
         <div class="control-section">
@@ -227,6 +325,99 @@ onUnmounted(() => {
   font-size: 20px;
   margin: 10px 0;
   opacity: 0.9;
+}
+
+.characters-section {
+  max-width: 1200px;
+  margin: 30px auto;
+}
+
+.characters-section h2 {
+  font-size: 32px;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.characters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.character-card {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s;
+}
+
+.character-card:hover {
+  transform: translateY(-5px);
+}
+
+.character-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.character-header h3 {
+  color: #333;
+  font-size: 24px;
+  margin: 0;
+}
+
+.gender-badge {
+  background: #667eea;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status-description {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.status-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.status-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.status-bar-label {
+  display: flex;
+  justify-content: space-between;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.status-bar-bg {
+  width: 100%;
+  height: 20px;
+  background: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.status-bar-fill {
+  height: 100%;
+  transition: width 0.5s ease, background-color 0.3s ease;
+  border-radius: 10px;
 }
 
 .control-panel {

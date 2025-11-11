@@ -12,6 +12,31 @@ dist
 dist-ssr
 *.local
 
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Python tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage/
+htmlcov/
+
+# Virtual environments & environment files
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Frontend tooling
+.vite/
+*.tsbuildinfo
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
