@@ -44,8 +44,14 @@ public_storage.add_item(all_items["axe"], 2)
 # 给角色初始物品
 characters[0].inventory.add_item(all_items["bread"], 3)
 characters[0].inventory.add_item(all_items["apple"], 5)
+characters[0].inventory.add_item(all_items["axe"], 1)  # 给小明一把斧头
 characters[1].inventory.add_item(all_items["bread"], 3)
 characters[1].inventory.add_item(all_items["cooked_meat"], 2)
+characters[1].inventory.add_item(all_items["pickaxe"], 1)  # 给小红一把镐子
+
+# 为角色设置物品字典引用（用于劳动产出）
+for character in characters:
+    character.all_items_ref = all_items
 
 # 连接管理器
 manager = ConnectionManager()

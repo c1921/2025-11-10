@@ -9,7 +9,10 @@ defineProps<{
 // 行动类型的中文映射
 const actionLabels: Record<string, string> = {
   rest: '休息',
-  work: '劳动',
+  lumbering: '伐木',
+  mining: '采石',
+  gathering: '采集浆果',
+  farming: '种植',
   eat: '进食',
   entertainment: '娱乐',
   idle: '空闲'
@@ -18,7 +21,10 @@ const actionLabels: Record<string, string> = {
 // 行动类型的图标映射
 const actionIcons: Record<string, string> = {
   rest: '😴',
-  work: '💼',
+  lumbering: '🪓',
+  mining: '⛏️',
+  gathering: '🫐',
+  farming: '🌾',
   eat: '🍽️',
   entertainment: '🎮',
   idle: '💤'

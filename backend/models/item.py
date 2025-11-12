@@ -205,6 +205,19 @@ def create_default_items() -> dict[str, Item]:
         effects={"hunger": 40}
     )
 
+    items["berry"] = Item(
+        item_id="berry",
+        name="浆果",
+        description="新鲜的浆果，可以恢复少量饥饿度",
+        category=ItemCategory.FOOD,
+        rarity=ItemRarity.COMMON,
+        stackable=True,
+        max_stack=50,
+        weight=0.2,
+        value=2,
+        effects={"hunger": 8}
+    )
+
     # 工具类
     items["pickaxe"] = Item(
         item_id="pickaxe",
@@ -265,6 +278,18 @@ def create_default_items() -> dict[str, Item]:
         max_stack=50,
         weight=4.0,
         value=10
+    )
+
+    items["wheat"] = Item(
+        item_id="wheat",
+        name="小麦",
+        description="农作物，可用于制作面包",
+        category=ItemCategory.MATERIAL,
+        rarity=ItemRarity.COMMON,
+        stackable=True,
+        max_stack=100,
+        weight=0.5,
+        value=1
     )
 
     # 消耗品

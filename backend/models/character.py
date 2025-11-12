@@ -1,27 +1,14 @@
-from enum import Enum
+"""角色模块 - 核心角色类"""
 from typing import TYPE_CHECKING
+from .enums import Gender, ActionType
 
 if TYPE_CHECKING:
     from .item import Inventory
 
 
-class Gender(str, Enum):
-    """性别枚举"""
-    MALE = "male"
-    FEMALE = "female"
-
-
-class ActionType(str, Enum):
-    """行动类型枚举"""
-    REST = "rest"        # 休息
-    WORK = "work"        # 劳动
-    EAT = "eat"          # 进食
-    ENTERTAINMENT = "entertainment"  # 娱乐
-    IDLE = "idle"        # 空闲
-
-
 class Character:
-    """角色类"""
+    """角色类 - 负责角色基础属性和状态管理"""
+    
     def __init__(self, name: str, gender: Gender, inventory_slots: int = 20):
         self.name = name
         self.gender = gender
@@ -32,14 +19,25 @@ class Character:
         # 行动相关
         self.current_action: ActionType = ActionType.IDLE  # 当前行动
         self.action_duration = 0  # 行动持续时间（小时）
+        # 劳动进度计数器（每种工作类型独立记录）
+        self.work_progress = {
+            ActionType.LUMBERING: 0,
+            ActionType.MINING: 0,
+            ActionType.GATHERING: 0,
+            ActionType.FARMING: 0
+        }
         # 背包系统
         from .item import Inventory
         self.inventory: Inventory = Inventory(max_slots=inventory_slots)
+        # 物品字典引用（用于劳动产出）
+        self.all_items_ref = None
 
     def update_status(self):
         """每小时更新状态"""
+        from .action_system import ActionSystem
+        
         # 执行当前行动的效果
-        self._apply_action_effects()
+        ActionSystem.apply_action_effects(self)
 
         # 自然状态变化（没有行动时的自然降低）
         if self.current_action == ActionType.IDLE:
@@ -57,57 +55,15 @@ class Character:
         if self.current_action != ActionType.IDLE:
             self.action_duration += 1
 
-    def _apply_action_effects(self):
-        """应用行动效果"""
-        if self.current_action == ActionType.REST:
-            # 休息恢复疲劳
-            self.fatigue = min(100, self.fatigue + 10)
-            self.hunger = max(0, self.hunger - 1)  # 休息时也会饿
-
-        elif self.current_action == ActionType.EAT:
-            # 进食恢复饥饿
-            self.hunger = min(100, self.hunger + 100)
-            self.fatigue = max(0, self.fatigue - 1)  # 进食会消耗一点精力
-
-        elif self.current_action == ActionType.ENTERTAINMENT:
-            # 娱乐恢复心情
-            self.mood = min(100, self.mood + 8)
-            self.fatigue = max(0, self.fatigue - 2)  # 娱乐会消耗精力
-            self.hunger = max(0, self.hunger - 2)    # 娱乐会消耗饥饿
-
-        elif self.current_action == ActionType.WORK:
-            # 劳动消耗疲劳和饥饿，但不直接影响心情
-            self.fatigue = max(0, self.fatigue - 5)
-            self.hunger = max(0, self.hunger - 4)
-
     def assign_action(self, action: ActionType):
-        """分配行动"""
-        self.current_action = action
-        self.action_duration = 0
+        """分配行动 - 委托给 ActionSystem"""
+        from .action_system import ActionSystem
+        ActionSystem.assign_action(self, action)
 
     def auto_assign_action(self):
-        """根据角色状态自动分配行动"""
-        # 优先级：饥饿 > 疲劳 > 心情
-
-        # 如果当前正在休息，持续到疲劳值90以上再切换
-        if self.current_action == ActionType.REST and self.fatigue < 90:
-            return  # 继续休息，不切换状态
-        
-        # 如果饥饿度低于40，去进食
-        if self.hunger < 40:
-            self.assign_action(ActionType.EAT)
-        # 如果疲劳度低于40，去休息
-        elif self.fatigue < 40:
-            self.assign_action(ActionType.REST)
-        # 如果心情低于50，去娱乐
-        elif self.mood < 50:
-            self.assign_action(ActionType.ENTERTAINMENT)
-        # 如果状态都还不错，可以劳动
-        elif self.fatigue > 60 and self.hunger > 60:
-            self.assign_action(ActionType.WORK)
-        # 否则空闲
-        else:
-            self.assign_action(ActionType.IDLE)
+        """根据角色状态自动分配行动 - 委托给 ActionSystem"""
+        from .action_system import ActionSystem
+        ActionSystem.auto_assign_action(self)
 
     def use_item(self, item_id: str) -> bool:
         """使用物品"""
