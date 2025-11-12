@@ -9,14 +9,9 @@ defineProps<{
 </script>
 
 <template>
-  <div class="flex flex-col gap-1">
-    <div class="flex justify-between text-sm font-semibold">
-      <span>{{ label }}</span>
-      <span :style="{ color: getStatusColorHex(value, reverse) }">
-        {{ value }}
-      </span>
-    </div>
-    <div class="w-full h-5 bg-gray-200 rounded-full overflow-hidden">
+  <div class="flex items-center gap-2">
+    <span class="text-sm font-semibold w-12 shrink-0">{{ label }}</span>
+    <div class="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
       <div
         class="h-full rounded-full transition-all duration-500 ease-in-out"
         :style="{
@@ -25,5 +20,11 @@ defineProps<{
         }"
       />
     </div>
+    <span 
+      class="text-sm font-semibold w-10 text-right shrink-0"
+      :style="{ color: getStatusColorHex(value, reverse) }"
+    >
+      {{ value }}
+    </span>
   </div>
 </template>

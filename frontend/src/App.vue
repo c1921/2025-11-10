@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import GameHeader from './components/GameHeader.vue'
 import CharacterCard from './components/CharacterCard.vue'
-import TimeControl from './components/TimeControl.vue'
 import InventoryCard from './components/InventoryCard.vue'
 import { useWebSocket } from './composables/useWebSocket'
 
 const { timeString, isConnected, isRunning, currentSpeed, characters, publicStorage } = useWebSocket()
-
-const activeTab = ref<'characters' | 'inventory'>('characters')
 
 onMounted(() => {
   setTimeout(() => window.HSStaticMethods.autoInit(), 100)
@@ -18,80 +15,89 @@ onMounted(() => {
 <template>
   <div class="min-h-screen w-full">
     <!-- Header -->
-    <GameHeader :time-string="timeString" :is-connected="isConnected" />
-
-    <!-- Main Content -->
-    <div class="text-center mt-5">
-      <h1 class="text-5xl font-bold mb-5 drop-shadow-lg">游戏管理系统</h1>
-      <p class="text-xl my-2 opacity-90">一天24小时，每小时200ms</p>
-      <p class="text-xl my-2 opacity-90">时间会自动流逝并实时更新</p>
-
-      <!-- Tab Navigation -->
-      <div class="max-w-6xl mx-auto my-6 flex gap-4 justify-center">
-        <button
-          @click="activeTab = 'characters'"
-          class="px-8 py-3 rounded-lg font-bold text-lg transition-all duration-200"
-          :class="activeTab === 'characters' 
-            ? 'shadow-lg scale-105' 
-            : 'hover:bg-purple-500'"
-        >
-          👥 角色状态
-        </button>
-        <button
-          @click="activeTab = 'inventory'"
-          class="px-8 py-3 rounded-lg font-bold text-lg transition-all duration-200"
-          :class="activeTab === 'inventory' 
-            ? 'shadow-lg scale-105' 
-            : 'bg-purple-600 text-white hover:bg-purple-500'"
-        >
-          📦 物品系统
-        </button>
-      </div>
-
-      <!-- Characters Section -->
-      <div v-if="activeTab === 'characters'" class="max-w-6xl mx-auto my-8">
-        <h2 class="text-4xl font-bold mb-5 drop-shadow-md">角色状态</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-          <CharacterCard
-            v-for="char in characters"
-            :key="char.id"
-            :character="char"
-          />
-        </div>
-      </div>
-
-      <!-- Inventory Section -->
-      <div v-if="activeTab === 'inventory'" class="max-w-7xl mx-auto my-8">
-        <h2 class="text-4xl font-bold mb-5 drop-shadow-md">物品与背包</h2>
-        
-        <!-- Public Storage -->
-        <div class="mb-8">
-          <InventoryCard
-            :inventory="publicStorage"
-            title="公共仓库"
-            :is-public-storage="true"
-          />
-        </div>
-
-        <!-- Character Inventories -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <InventoryCard
-            v-for="char in characters"
-            :key="char.id"
-            :inventory="char.inventory"
-            :title="`${char.name}的背包`"
-            :is-public-storage="false"
-          />
-        </div>
-      </div>
-
-      <!-- Time Control -->
-      <TimeControl
+    <div class="fixed top-0 left-0 right-0 z-50 bg-base-100 px-4 pt-4 pb-2">
+      <GameHeader 
+        :time-string="timeString" 
+        :is-connected="isConnected"
         :is-running="isRunning"
         :current-speed="currentSpeed"
         @update:is-running="isRunning = $event"
         @update:current-speed="currentSpeed = $event"
       />
+    </div>
+
+    <!-- Main Content -->
+    <div class="text-center pt-32">
+
+      <!-- Tab Navigation -->
+      <nav class="tabs tabs-bordered overflow-x-auto max-w-6xl mx-auto my-6 justify-center" aria-label="Tabs" role="tablist" aria-orientation="horizontal">
+        <button
+          type="button"
+          class="tab active-tab:tab-active active"
+          id="tab-characters-btn"
+          data-tab="#tab-characters"
+          aria-controls="tab-characters"
+          role="tab"
+        >
+          <span class="icon-[tabler--users] size-5 shrink-0 me-2"></span>
+          角色状态
+        </button>
+        <button
+          type="button"
+          class="tab active-tab:tab-active"
+          id="tab-inventory-btn"
+          data-tab="#tab-inventory"
+          aria-controls="tab-inventory"
+          role="tab"
+        >
+          <span class="icon-[tabler--package] size-5 shrink-0 me-2"></span>
+          物品系统
+        </button>
+      </nav>
+
+      <!-- Tab Content -->
+      <div class="mt-6">
+        <!-- Characters Section -->
+        <div id="tab-characters" role="tabpanel" aria-labelledby="tab-characters-btn">
+          <div class="max-w-6xl mx-auto my-8">
+            <h2 class="text-4xl font-bold mb-5 drop-shadow-md">角色状态</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+              <CharacterCard
+                v-for="char in characters"
+                :key="char.id"
+                :character="char"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Inventory Section -->
+        <div id="tab-inventory" class="hidden" role="tabpanel" aria-labelledby="tab-inventory-btn">
+          <div class="max-w-7xl mx-auto my-8">
+            <h2 class="text-4xl font-bold mb-5 drop-shadow-md">物品与背包</h2>
+            
+            <!-- Public Storage -->
+            <div class="mb-8">
+              <InventoryCard
+                :inventory="publicStorage"
+                title="公共仓库"
+                :is-public-storage="true"
+              />
+            </div>
+
+            <!-- Character Inventories -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <InventoryCard
+                v-for="char in characters"
+                :key="char.id"
+                :inventory="char.inventory"
+                :title="`${char.name}的背包`"
+                :is-public-storage="false"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
