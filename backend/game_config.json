@@ -1,0 +1,26 @@
+{
+  "character": {
+    "count": 100,
+    "inventory_slots": 20,
+    "initial_items": {
+      "bread": 3,
+      "apple": 5
+    },
+    "initial_tools": ["axe", "pickaxe"]
+  },
+  "public_storage": {
+    "slots": 100,
+    "initial_items": {
+      "bread": 20,
+      "apple": 30,
+      "wood": 50,
+      "stone": 40,
+      "pickaxe": 2,
+      "axe": 2
+    }
+  },
+  "time": {
+    "hour_duration": 0.2
+  }
+}
+

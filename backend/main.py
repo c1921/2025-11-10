@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
+import random
 from typing import List
 
 from models import Character, Gender, Inventory, create_default_items
@@ -8,6 +9,8 @@ from core import GameTime, ConnectionManager
 from routers import api_router, websocket_router
 from routers.api import init_game_state
 from routers.websocket import init_websocket_state
+from utils.character_generator import CharacterGenerator
+from config import GameConfig
 
 app = FastAPI()
 
@@ -22,36 +25,54 @@ app.add_middleware(
 
 # 全局游戏时间实例
 game_time = GameTime()
+game_time.hour_duration = GameConfig.HOUR_DURATION
 
-# 创建默认角色
-characters: List[Character] = [
-    Character("小明", Gender.MALE),
-    Character("小红", Gender.FEMALE)
-]
+print(f"\n{'='*50}")
+print(f"游戏初始化")
+print(f"{'='*50}\n")
 
 # 物品系统
 all_items = create_default_items()  # 所有可用物品的字典
-public_storage = Inventory(max_slots=100)  # 公共仓库
 
-# 初始化公共仓库的一些物品
-public_storage.add_item(all_items["bread"], 20)
-public_storage.add_item(all_items["apple"], 30)
-public_storage.add_item(all_items["wood"], 50)
-public_storage.add_item(all_items["stone"], 40)
-public_storage.add_item(all_items["pickaxe"], 2)
-public_storage.add_item(all_items["axe"], 2)
+# 使用配置生成角色
+print(f"[初始化] 生成 {GameConfig.CHARACTER_COUNT} 个角色...")
+characters = CharacterGenerator.generate_characters(
+    count=GameConfig.CHARACTER_COUNT,
+    inventory_slots=GameConfig.CHARACTER_INVENTORY_SLOTS
+)
 
-# 给角色初始物品
-characters[0].inventory.add_item(all_items["bread"], 3)
-characters[0].inventory.add_item(all_items["apple"], 5)
-characters[0].inventory.add_item(all_items["axe"], 1)  # 给小明一把斧头
-characters[1].inventory.add_item(all_items["bread"], 3)
-characters[1].inventory.add_item(all_items["cooked_meat"], 2)
-characters[1].inventory.add_item(all_items["pickaxe"], 1)  # 给小红一把镐子
-
-# 为角色设置物品字典引用（用于劳动产出）
+# 为角色分配初始物品
+print(f"\n[初始化] 分配初始物品...")
 for character in characters:
+    for item_id, quantity in GameConfig.INITIAL_CHARACTER_ITEMS.items():
+        if item_id in all_items:
+            character.inventory.add_item(all_items[item_id], quantity)
+            print(f"  {character.name} 获得: {all_items[item_id].name} x{quantity}")
+    
+    # 设置物品字典引用
     character.all_items_ref = all_items
+
+# 随机给角色分配工具
+print(f"\n[初始化] 随机分配工具...")
+for tool in GameConfig.INITIAL_TOOLS:
+    if tool in all_items:
+        lucky_character = random.choice(characters)
+        lucky_character.inventory.add_item(all_items[tool], 1)
+        print(f"  {lucky_character.name} 获得工具: {all_items[tool].name}")
+
+# 创建公共仓库
+public_storage = Inventory(max_slots=GameConfig.PUBLIC_STORAGE_SLOTS)
+
+# 初始化公共仓库的物品
+print(f"\n[初始化] 初始化公共仓库...")
+for item_id, quantity in GameConfig.PUBLIC_STORAGE_INITIAL_ITEMS.items():
+    if item_id in all_items:
+        public_storage.add_item(all_items[item_id], quantity)
+        print(f"  公共仓库: {all_items[item_id].name} x{quantity}")
+
+print(f"\n{'='*50}")
+print(f"初始化完成! 游戏即将开始...")
+print(f"{'='*50}\n")
 
 # 连接管理器
 manager = ConnectionManager()
