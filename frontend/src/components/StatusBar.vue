@@ -10,7 +10,7 @@ defineProps<{
 
 <template>
   <div class="flex flex-col gap-1">
-    <div class="flex justify-between text-sm font-semibold text-gray-700">
+    <div class="flex justify-between text-sm font-semibold">
       <span>{{ label }}</span>
       <span :style="{ color: getStatusColorHex(value, reverse) }">
         {{ value }}

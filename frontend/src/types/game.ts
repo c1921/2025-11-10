@@ -6,6 +6,30 @@ export interface GameTime {
   speed: number
 }
 
+export interface Item {
+  item_id: string
+  name: string
+  description: string
+  category: string
+  rarity: string
+  stackable: boolean
+  max_stack: number
+  weight: number
+  value: number
+  effects: Record<string, number>
+}
+
+export interface ItemStack {
+  item: Item
+  quantity: number
+}
+
+export interface Inventory {
+  max_slots: number
+  used_slots: number
+  items: ItemStack[]
+}
+
 export interface Character {
   name: string
   gender: string
@@ -15,11 +39,13 @@ export interface Character {
   current_action: string
   action_duration: number
   status_text: string
+  inventory: Inventory
 }
 
 export interface GameUpdate {
   time: GameTime
   characters: Character[]
+  public_storage: Inventory
 }
 
 export interface WebSocketMessage {

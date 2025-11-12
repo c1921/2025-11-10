@@ -1,4 +1,8 @@
 from enum import Enum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .item import Inventory
 
 
 class Gender(str, Enum):
@@ -18,7 +22,7 @@ class ActionType(str, Enum):
 
 class Character:
     """角色类"""
-    def __init__(self, name: str, gender: Gender):
+    def __init__(self, name: str, gender: Gender, inventory_slots: int = 20):
         self.name = name
         self.gender = gender
         # 状态值（0-100）
@@ -28,6 +32,9 @@ class Character:
         # 行动相关
         self.current_action: ActionType = ActionType.IDLE  # 当前行动
         self.action_duration = 0  # 行动持续时间（小时）
+        # 背包系统
+        from .item import Inventory
+        self.inventory: Inventory = Inventory(max_slots=inventory_slots)
 
     def update_status(self):
         """每小时更新状态"""
@@ -102,6 +109,31 @@ class Character:
         else:
             self.assign_action(ActionType.IDLE)
 
+    def use_item(self, item_id: str) -> bool:
+        """使用物品"""
+        # 检查是否拥有该物品
+        if not self.inventory.has_item(item_id):
+            return False
+
+        # 获取物品效果
+        for stack in self.inventory.items:
+            if stack.item.item_id == item_id:
+                effects = stack.item.effects
+                
+                # 应用效果
+                if "fatigue" in effects:
+                    self.fatigue = min(100, self.fatigue + effects["fatigue"])
+                if "hunger" in effects:
+                    self.hunger = min(100, self.hunger + effects["hunger"])
+                if "mood" in effects:
+                    self.mood = min(100, self.mood + effects["mood"])
+                
+                # 移除使用的物品
+                self.inventory.remove_item(item_id, 1)
+                return True
+
+        return False
+
     def get_status_dict(self) -> dict:
         """获取角色状态数据"""
         return {
@@ -112,7 +144,8 @@ class Character:
             "mood": round(self.mood, 1),
             "current_action": self.current_action.value,
             "action_duration": self.action_duration,
-            "status_text": self._get_status_text()
+            "status_text": self._get_status_text(),
+            "inventory": self.inventory.get_dict()
         }
 
     def _get_status_text(self) -> str:

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from typing import List
-from models import Character
+from typing import List, Dict
+from models import Character, Item, Inventory
 from core import GameTime, ConnectionManager
 
 router = APIRouter(tags=["websocket"])
@@ -9,14 +9,24 @@ router = APIRouter(tags=["websocket"])
 game_time: GameTime = None
 manager: ConnectionManager = None
 characters: List[Character] = []
+all_items: Dict[str, Item] = {}
+public_storage: Inventory = None
 
 
-def init_websocket_state(game_time_instance: GameTime, manager_instance: ConnectionManager, characters_list: List[Character]):
+def init_websocket_state(
+    game_time_instance: GameTime, 
+    manager_instance: ConnectionManager, 
+    characters_list: List[Character],
+    items_dict: Dict[str, Item],
+    public_storage_instance: Inventory
+):
     """初始化WebSocket状态"""
-    global game_time, manager, characters
+    global game_time, manager, characters, all_items, public_storage
     game_time = game_time_instance
     manager = manager_instance
     characters = characters_list
+    all_items = items_dict
+    public_storage = public_storage_instance
 
 
 @router.websocket("/ws")
@@ -29,7 +39,8 @@ async def websocket_endpoint(websocket: WebSocket):
             "type": "game_update",
             "data": {
                 "time": game_time.get_time_dict(),
-                "characters": [char.get_status_dict() for char in characters]
+                "characters": [char.get_status_dict() for char in characters],
+                "public_storage": public_storage.get_dict()
             }
         })
 
@@ -42,7 +53,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     "type": "game_update",
                     "data": {
                         "time": game_time.get_time_dict(),
-                        "characters": [char.get_status_dict() for char in characters]
+                        "characters": [char.get_status_dict() for char in characters],
+                        "public_storage": public_storage.get_dict()
                     }
                 })
     except WebSocketDisconnect:

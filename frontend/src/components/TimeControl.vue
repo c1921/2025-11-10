@@ -33,10 +33,10 @@ const handleSetSpeed = async (speed: number) => {
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto bg-white/95 p-8 rounded-3xl shadow-xl">
+  <div class="max-w-3xl mx-auto p-8 rounded-3xl shadow-xl">
     <!-- 时间控制 -->
     <div class="mb-8">
-      <h3 class="text-xl font-bold text-gray-800 mb-4">时间控制</h3>
+      <h3 class="text-xl font-bold mb-4">时间控制</h3>
       <div class="flex gap-4 justify-center">
         <button
           @click="handleToggleTime"
@@ -50,7 +50,7 @@ const handleSetSpeed = async (speed: number) => {
 
     <!-- 时间流速 -->
     <div class="mb-8">
-      <h3 class="text-xl font-bold text-gray-800 mb-4">时间流速</h3>
+      <h3 class="text-xl font-bold mb-4">时间流速</h3>
       <div class="flex gap-4 justify-center flex-wrap">
         <button
           @click="handleSetSpeed(1)"
@@ -79,7 +79,7 @@ const handleSetSpeed = async (speed: number) => {
     <!-- 状态信息 -->
     <div class="flex justify-center gap-10 pt-6 border-t-2 border-gray-200">
       <div class="flex items-center gap-3">
-        <span class="text-lg font-medium text-gray-600">状态:</span>
+        <span class="text-lg font-medium">状态:</span>
         <span
           class="text-xl font-bold"
           :class="isRunning ? 'text-success' : 'text-warning'"
@@ -88,7 +88,7 @@ const handleSetSpeed = async (speed: number) => {
         </span>
       </div>
       <div class="flex items-center gap-3">
-        <span class="text-lg font-medium text-gray-600">速度:</span>
+        <span class="text-lg font-medium">速度:</span>
         <span class="text-xl font-bold text-primary">{{ currentSpeed }}x</span>
       </div>
     </div>

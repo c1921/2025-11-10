@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 from typing import List
 
-from models import Character, Gender
+from models import Character, Gender, Inventory, create_default_items
 from core import GameTime, ConnectionManager
 from routers import api_router, websocket_router
 from routers.api import init_game_state
@@ -29,6 +29,24 @@ characters: List[Character] = [
     Character("小红", Gender.FEMALE)
 ]
 
+# 物品系统
+all_items = create_default_items()  # 所有可用物品的字典
+public_storage = Inventory(max_slots=100)  # 公共仓库
+
+# 初始化公共仓库的一些物品
+public_storage.add_item(all_items["bread"], 20)
+public_storage.add_item(all_items["apple"], 30)
+public_storage.add_item(all_items["wood"], 50)
+public_storage.add_item(all_items["stone"], 40)
+public_storage.add_item(all_items["pickaxe"], 2)
+public_storage.add_item(all_items["axe"], 2)
+
+# 给角色初始物品
+characters[0].inventory.add_item(all_items["bread"], 3)
+characters[0].inventory.add_item(all_items["apple"], 5)
+characters[1].inventory.add_item(all_items["bread"], 3)
+characters[1].inventory.add_item(all_items["cooked_meat"], 2)
+
 # 连接管理器
 manager = ConnectionManager()
 
@@ -51,15 +69,16 @@ async def time_loop():
                 "type": "game_update",
                 "data": {
                     "time": game_time.get_time_dict(),
-                    "characters": [char.get_status_dict() for char in characters]
+                    "characters": [char.get_status_dict() for char in characters],
+                    "public_storage": public_storage.get_dict()
                 }
             })
         await asyncio.sleep(game_time.hour_duration)
 
 
 # 初始化路由模块的游戏状态
-init_game_state(game_time, manager, characters)
-init_websocket_state(game_time, manager, characters)
+init_game_state(game_time, manager, characters, all_items, public_storage)
+init_websocket_state(game_time, manager, characters, all_items, public_storage)
 
 # 注册路由
 app.include_router(api_router)

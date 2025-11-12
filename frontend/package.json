@@ -13,6 +13,7 @@
     "@iconify/json": "^2.2.405",
     "@iconify/tailwind4": "^1.1.0",
     "@tailwindcss/vite": "^4.1.17",
+    "axios": "^1.13.2",
     "flyonui": "^2.4.1",
     "tailwindcss": "^4.1.17",
     "vue": "^3.5.24"

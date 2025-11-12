@@ -30,10 +30,10 @@ const getActionIcon = (action: string) => actionIcons[action] || '❓'
 
 <template>
   <div
-    class="bg-white/95 p-6 rounded-2xl shadow-lg transition-transform duration-300 hover:-translate-y-1"
+    class="p-6 rounded-2xl shadow-lg transition-transform duration-300 hover:-translate-y-1"
   >
     <div class="flex justify-between items-center mb-4">
-      <h3 class="text-2xl font-bold text-gray-800">{{ character.name }}</h3>
+      <h3 class="text-2xl font-bold">{{ character.name }}</h3>
       <span class="badge badge-primary">
         {{ character.gender === 'male' ? '♂ 男' : '♀ 女' }}
       </span>
@@ -41,10 +41,10 @@ const getActionIcon = (action: string) => actionIcons[action] || '❓'
 
     <!-- 当前行动 -->
     <div
-      class="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200"
+      class="mb-4 p-3 rounded-xl border border-blue-200"
     >
       <div class="flex items-center justify-between">
-        <span class="text-gray-700 font-medium">
+        <span class="font-medium">
           {{ getActionIcon(character.current_action) }}
           {{ getActionLabel(character.current_action) }}
         </span>
@@ -54,7 +54,7 @@ const getActionIcon = (action: string) => actionIcons[action] || '❓'
       </div>
     </div>
 
-    <p class="text-gray-600 text-sm mb-5 italic">
+    <p class="text-sm mb-5 italic">
       {{ character.status_text }}
     </p>
 

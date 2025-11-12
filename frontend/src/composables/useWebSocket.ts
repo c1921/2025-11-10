@@ -1,5 +1,5 @@
 import { ref, onMounted, onUnmounted } from 'vue'
-import type { GameUpdate, GameTime, WebSocketMessage } from '@/types/game'
+import type { GameUpdate, GameTime, WebSocketMessage, Inventory } from '@/types/game'
 
 export function useWebSocket() {
   const timeString = ref<string>('第1天 0时')
@@ -7,6 +7,7 @@ export function useWebSocket() {
   const isRunning = ref<boolean>(true)
   const currentSpeed = ref<number>(1)
   const characters = ref<any[]>([])
+  const publicStorage = ref<Inventory>({ max_slots: 0, used_slots: 0, items: [] })
 
   let ws: WebSocket | null = null
 
@@ -26,6 +27,7 @@ export function useWebSocket() {
         isRunning.value = data.time.running
         currentSpeed.value = data.time.speed
         characters.value = data.characters
+        publicStorage.value = data.public_storage
       } else if (message.type === 'speed_update' || message.type === 'status_update') {
         const data = message.data as GameTime
         isRunning.value = data.running
@@ -66,6 +68,7 @@ export function useWebSocket() {
     isRunning,
     currentSpeed,
     characters,
+    publicStorage,
     connectWebSocket,
     disconnect
   }
