@@ -52,6 +52,10 @@ const getActionIcon = (action: string) => actionIcons[action] || '❓'
       </span>
     </div>
 
+    <div class="text-xs mb-2 text-gray-600">
+      年龄: {{ character.age_string }}
+    </div>
+
     <p class="text-xs mb-3 italic opacity-80">
       {{ character.status_text }}
     </p>

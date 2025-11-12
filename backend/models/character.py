@@ -10,10 +10,13 @@ if TYPE_CHECKING:
 class Character:
     """角色类 - 负责角色基础属性和状态管理"""
     
-    def __init__(self, name: str, gender: Gender, inventory_slots: int = 20):
+    def __init__(self, name: str, gender: Gender, inventory_slots: int = 20, age_years: int = 25, age_days: int = 0):
         self.id = str(uuid.uuid4())  # 生成唯一UUID
         self.name = name
         self.gender = gender
+        # 年龄系统
+        self.age_years = age_years  # 年龄（岁）
+        self.age_days = age_days    # 年龄的天数部分（0-364）
         # 状态值（0-100）
         self.fatigue = 100  # 疲劳度，100=精力充沛，0=极度疲劳
         self.hunger = 100   # 饥饿度，100=饱腹，0=极度饥饿
@@ -62,6 +65,13 @@ class Character:
         from .action_system import ActionSystem
         ActionSystem.auto_assign_action(self)
 
+    def age_one_day(self):
+        """年龄增长一天"""
+        self.age_days += 1
+        if self.age_days >= 365:
+            self.age_years += 1
+            self.age_days = 0
+
     def use_item(self, item_id: str) -> bool:
         """使用物品"""
         # 检查是否拥有该物品
@@ -93,6 +103,9 @@ class Character:
             "id": self.id,
             "name": self.name,
             "gender": self.gender.value,
+            "age_years": self.age_years,
+            "age_days": self.age_days,
+            "age_string": f"{self.age_years}岁+{self.age_days}天",
             "fatigue": round(self.fatigue, 1),
             "hunger": round(self.hunger, 1),
             "mood": round(self.mood, 1),

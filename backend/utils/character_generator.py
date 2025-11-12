@@ -75,8 +75,12 @@ class CharacterGenerator:
             name = CharacterGenerator.generate_name(gender, used_names)
             used_names.add(name)
             
+            # 随机生成初始年龄（18-50岁，天数0-364）
+            age_years = random.randint(18, 50)
+            age_days = random.randint(0, 364)
+            
             # 创建角色
-            character = Character(name, gender, inventory_slots)
+            character = Character(name, gender, inventory_slots, age_years, age_days)
             characters.append(character)
             
             print(f"[角色生成] 创建角色: {name} ({'男' if gender == Gender.MALE else '女'})")

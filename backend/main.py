@@ -84,6 +84,11 @@ async def time_loop():
         if game_time.running:
             game_time.tick()
 
+            # 如果是新的一天（0时），所有角色年龄增长
+            if game_time.hour == 0:
+                for character in characters:
+                    character.age_one_day()
+
             # 更新所有角色状态
             for character in characters:
                 # 自动分配行动

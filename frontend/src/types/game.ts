@@ -34,6 +34,9 @@ export interface Character {
   id: string
   name: string
   gender: string
+  age_years: number
+  age_days: number
+  age_string: string
   fatigue: number
   hunger: number
   mood: number
