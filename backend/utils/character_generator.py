@@ -2,6 +2,7 @@
 import random
 from typing import List
 from models import Character, Gender
+from models.enums import TraitType
 
 
 class CharacterGenerator:
@@ -53,6 +54,29 @@ class CharacterGenerator:
         return f"{surname}{'男' if gender == Gender.MALE else '女'}{len(used_names)}"
     
     @staticmethod
+    def generate_random_traits() -> List[TraitType]:
+        """
+        随机生成角色特质
+        
+        返回:
+            List[TraitType]: 特质列表（1-3个）
+        """
+        # 决定特质数量：60%概率1个，30%概率2个，10%概率3个
+        rand = random.random()
+        if rand < 0.6:
+            trait_count = 1
+        elif rand < 0.9:
+            trait_count = 2
+        else:
+            trait_count = 3
+        
+        # 从所有特质中随机选择不重复的特质
+        all_traits = list(TraitType)
+        selected_traits = random.sample(all_traits, trait_count)
+        
+        return selected_traits
+    
+    @staticmethod
     def generate_characters(count: int, inventory_slots: int = 20) -> List[Character]:
         """
         生成指定数量的随机角色
@@ -79,11 +103,15 @@ class CharacterGenerator:
             age_years = random.randint(18, 50)
             age_days = random.randint(0, 364)
             
+            # 随机分配特质（1-3个）
+            traits = CharacterGenerator.generate_random_traits()
+            
             # 创建角色
-            character = Character(name, gender, inventory_slots, age_years, age_days)
+            character = Character(name, gender, inventory_slots, age_years, age_days, traits)
             characters.append(character)
             
-            print(f"[角色生成] 创建角色: {name} ({'男' if gender == Gender.MALE else '女'})")
+            trait_names = ", ".join([t.value for t in traits]) if traits else "无"
+            print(f"[角色生成] 创建角色: {name} ({'男' if gender == Gender.MALE else '女'}), 特质: {trait_names}")
         
         return characters
 

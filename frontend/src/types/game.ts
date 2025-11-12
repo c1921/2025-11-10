@@ -37,6 +37,8 @@ export interface Character {
   age_years: number
   age_days: number
   age_string: string
+  traits: string[]
+  trait_names: string[]
   fatigue: number
   hunger: number
   mood: number

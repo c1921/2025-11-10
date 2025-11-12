@@ -1,7 +1,7 @@
 """角色模块 - 核心角色类"""
 import uuid
-from typing import TYPE_CHECKING
-from .enums import Gender, ActionType
+from typing import TYPE_CHECKING, List
+from .enums import Gender, ActionType, TraitType
 
 if TYPE_CHECKING:
     from .item import Inventory
@@ -10,13 +10,15 @@ if TYPE_CHECKING:
 class Character:
     """角色类 - 负责角色基础属性和状态管理"""
     
-    def __init__(self, name: str, gender: Gender, inventory_slots: int = 20, age_years: int = 25, age_days: int = 0):
+    def __init__(self, name: str, gender: Gender, inventory_slots: int = 20, age_years: int = 25, age_days: int = 0, traits: List[TraitType] = None):
         self.id = str(uuid.uuid4())  # 生成唯一UUID
         self.name = name
         self.gender = gender
         # 年龄系统
         self.age_years = age_years  # 年龄（岁）
         self.age_days = age_days    # 年龄的天数部分（0-364）
+        # 特质系统
+        self.traits: List[TraitType] = traits if traits is not None else []
         # 状态值（0-100）
         self.fatigue = 100  # 疲劳度，100=精力充沛，0=极度疲劳
         self.hunger = 100   # 饥饿度，100=饱腹，0=极度饥饿
@@ -40,17 +42,22 @@ class Character:
     def update_status(self):
         """每小时更新状态"""
         from .action_system import ActionSystem
+        from .trait_system import TraitSystem
         
         # 执行当前行动的效果
         ActionSystem.apply_action_effects(self)
 
         # 移除了 IDLE 空闲状态，角色总是在做事情
 
-        # 如果饥饿或疲劳过低，心情额外降低
+        # 如果饥饿或疲劳过低，心情额外降低 - 应用坚韧特质
         if self.hunger < 30:
-            self.mood = max(0, self.mood - 2)
+            base_mood_penalty = -2
+            mood_penalty = TraitSystem.apply_mood_change(self, base_mood_penalty, is_consumption=True)
+            self.mood = max(0, self.mood + mood_penalty)
         if self.fatigue < 30:
-            self.mood = max(0, self.mood - 2)
+            base_mood_penalty = -2
+            mood_penalty = TraitSystem.apply_mood_change(self, base_mood_penalty, is_consumption=True)
+            self.mood = max(0, self.mood + mood_penalty)
 
         # 行动持续时间增加
         self.action_duration += 1
@@ -71,6 +78,15 @@ class Character:
         if self.age_days >= 365:
             self.age_years += 1
             self.age_days = 0
+
+    def has_trait(self, trait: TraitType) -> bool:
+        """检查是否拥有某个特质"""
+        return trait in self.traits
+
+    def get_trait_names(self) -> List[str]:
+        """获取特质的中文名称列表"""
+        from .trait_system import TraitSystem
+        return [TraitSystem.get_trait_name(trait) for trait in self.traits]
 
     def use_item(self, item_id: str) -> bool:
         """使用物品"""
@@ -106,6 +122,8 @@ class Character:
             "age_years": self.age_years,
             "age_days": self.age_days,
             "age_string": f"{self.age_years}岁+{self.age_days}天",
+            "traits": [trait.value for trait in self.traits],
+            "trait_names": self.get_trait_names(),
             "fatigue": round(self.fatigue, 1),
             "hunger": round(self.hunger, 1),
             "mood": round(self.mood, 1),

@@ -30,6 +30,21 @@ const actionIcons: Record<string, string> = {
 
 const getActionLabel = (action: string) => actionLabels[action] || action
 const getActionIcon = (action: string) => actionIcons[action] || '❓'
+
+// 特质徽章颜色映射
+const getTraitBadgeClass = (trait: string): string => {
+  const traitColors: Record<string, string> = {
+    strong: 'badge-error',           // 强壮 - 红色
+    efficient_sleeper: 'badge-info', // 高效睡眠 - 蓝色
+    good_appetite: 'badge-success',  // 好胃口 - 绿色
+    cheerful: 'badge-warning',       // 开朗 - 黄色
+    quick_learner: 'badge-secondary',// 手巧 - 紫色
+    resilient: 'badge-accent',       // 坚韧 - 青色
+    gourmand: 'badge-primary',       // 美食家 - 主色
+    workaholic: 'badge-neutral'      // 工作狂 - 中性色
+  }
+  return traitColors[trait] || 'badge-ghost'
+}
 </script>
 
 <template>
@@ -54,6 +69,17 @@ const getActionIcon = (action: string) => actionIcons[action] || '❓'
 
     <div class="text-xs mb-2 text-gray-600">
       年龄: {{ character.age_string }}
+    </div>
+
+    <div class="flex flex-wrap gap-1 mb-2" v-if="character.trait_names && character.trait_names.length > 0">
+      <span
+        v-for="(traitName, index) in character.trait_names"
+        :key="index"
+        class="badge badge-sm"
+        :class="getTraitBadgeClass(character.traits?.[index] || '')"
+      >
+        {{ traitName }}
+      </span>
     </div>
 
     <p class="text-xs mb-3 italic opacity-80">

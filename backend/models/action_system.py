@@ -26,10 +26,18 @@ class ActionSystem:
     @staticmethod
     def apply_action_effects(character: "Character"):
         """应用行动效果"""
+        from .trait_system import TraitSystem
+        
         if character.current_action == ActionType.REST:
-            # 休息恢复疲劳
-            character.fatigue = min(100, character.fatigue + 10)
-            character.hunger = max(0, character.hunger - 1)  # 休息时也会饿
+            # 休息恢复疲劳 - 应用高效睡眠特质
+            base_fatigue_recovery = 10
+            fatigue_recovery = TraitSystem.apply_fatigue_change(character, base_fatigue_recovery, is_consumption=False)
+            character.fatigue = min(100, character.fatigue + fatigue_recovery)
+            
+            # 休息时也会饿 - 应用坚韧特质
+            base_hunger_consumption = -1
+            hunger_consumption = TraitSystem.apply_hunger_change(character, base_hunger_consumption, is_consumption=True)
+            character.hunger = max(0, character.hunger + hunger_consumption)
 
         elif character.current_action == ActionType.EAT:
             # 进食需要消耗食物
@@ -53,13 +61,21 @@ class ActionSystem:
                 ActionSystem.assign_action(character, ActionType.REST)
                 return
             
-            # 消耗食物并恢复饥饿
+            # 消耗食物并恢复饥饿 - 应用好胃口和美食家特质
             total_recovery = 0
             for item_id, quantity, recovery in selected_foods:
                 character.inventory.remove_item(item_id, quantity)
                 total_recovery += recovery
             
+            # 应用好胃口特质修正
+            total_recovery = TraitSystem.apply_hunger_change(character, total_recovery, is_consumption=False)
             character.hunger = min(100, character.hunger + total_recovery)
+            
+            # 应用美食家特质的心情加成
+            mood_bonus = TraitSystem.apply_mood_change(character, 0, is_eating=True)
+            if mood_bonus > 0:
+                character.mood = min(100, character.mood + mood_bonus)
+            
             character.fatigue = max(0, character.fatigue - 1)
             print(f"[行动系统] ✅ {character.name} - 进食完成，恢复 {total_recovery:.1f}，饥饿度: {character.hunger:.1f}")
             
@@ -71,20 +87,35 @@ class ActionSystem:
                     ActionSystem.assign_action(character, ActionType.REST)
 
         elif character.current_action == ActionType.ENTERTAINMENT:
-            # 娱乐恢复心情
-            character.mood = min(100, character.mood + 8)
-            character.fatigue = max(0, character.fatigue - 2)  # 娱乐会消耗精力
-            character.hunger = max(0, character.hunger - 2)    # 娱乐会消耗饥饿
+            # 娱乐恢复心情 - 应用开朗特质
+            base_mood_recovery = 8
+            mood_recovery = TraitSystem.apply_mood_change(character, base_mood_recovery, is_entertainment=True)
+            character.mood = min(100, character.mood + mood_recovery)
+            
+            # 娱乐会消耗精力和饥饿 - 应用坚韧特质
+            base_fatigue_consumption = -2
+            base_hunger_consumption = -2
+            fatigue_consumption = TraitSystem.apply_fatigue_change(character, base_fatigue_consumption, is_consumption=True)
+            hunger_consumption = TraitSystem.apply_hunger_change(character, base_hunger_consumption, is_consumption=True)
+            character.fatigue = max(0, character.fatigue + fatigue_consumption)
+            character.hunger = max(0, character.hunger + hunger_consumption)
 
         elif character.current_action in [ActionType.LUMBERING, ActionType.MINING, ActionType.GATHERING, ActionType.FARMING]:
-            # 劳动消耗疲劳和饥饿
-            character.fatigue = max(0, character.fatigue - 5)
-            character.hunger = max(0, character.hunger - 4)
+            # 劳动消耗疲劳和饥饿 - 应用强壮和坚韧特质
+            base_fatigue_consumption = -5
+            base_hunger_consumption = -4
+            fatigue_consumption = TraitSystem.apply_fatigue_change(character, base_fatigue_consumption, is_consumption=True)
+            hunger_consumption = TraitSystem.apply_hunger_change(character, base_hunger_consumption, is_consumption=True)
+            character.fatigue = max(0, character.fatigue + fatigue_consumption)
+            character.hunger = max(0, character.hunger + hunger_consumption)
             
-            # 增加当前劳动类型的进度
-            character.work_progress[character.current_action] += 1
+            # 增加当前劳动类型的进度 - 应用手巧特质
+            base_progress = 1
+            progress_modifier = TraitSystem.get_trait_modifier(character, "work_progress_modifier", 1.0)
+            progress_increment = base_progress * progress_modifier
+            character.work_progress[character.current_action] += progress_increment
             current_progress = character.work_progress[character.current_action]
-            print(f"[行动系统] {character.name} - {character.current_action.value} 进度 +1 → {current_progress}/4")
+            print(f"[行动系统] {character.name} - {character.current_action.value} 进度 +{progress_increment:.2f} → {current_progress:.2f}/4")
             
             # 检查是否到达产出时间（4小时）
             from .work_system import WorkSystem
