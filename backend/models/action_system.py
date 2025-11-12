@@ -32,9 +32,43 @@ class ActionSystem:
             character.hunger = max(0, character.hunger - 1)  # 休息时也会饿
 
         elif character.current_action == ActionType.EAT:
-            # 进食恢复饥饿
-            character.hunger = min(100, character.hunger + 100)
-            character.fatigue = max(0, character.fatigue - 1)  # 进食会消耗一点精力
+            # 进食需要消耗食物
+            from .food_system import FoodSystem
+            
+            # 计算饥饿缺口
+            hunger_gap = 100 - character.hunger
+            
+            if hunger_gap <= 0:
+                print(f"[行动系统] {character.name} - 已经饱了 (饥饿度: {character.hunger:.1f})")
+                character.fatigue = max(0, character.fatigue - 1)
+                return
+            
+            # 选择食物
+            selected_foods = FoodSystem.select_food_to_eat(character, hunger_gap)
+            
+            if not selected_foods:
+                print(f"[行动系统] ❌ {character.name} - 没有食物可吃！切换到休息")
+                character.fatigue = max(0, character.fatigue - 1)
+                # 立即切换到休息状态
+                ActionSystem.assign_action(character, ActionType.REST)
+                return
+            
+            # 消耗食物并恢复饥饿
+            total_recovery = 0
+            for item_id, quantity, recovery in selected_foods:
+                character.inventory.remove_item(item_id, quantity)
+                total_recovery += recovery
+            
+            character.hunger = min(100, character.hunger + total_recovery)
+            character.fatigue = max(0, character.fatigue - 1)
+            print(f"[行动系统] ✅ {character.name} - 进食完成，恢复 {total_recovery:.1f}，饥饿度: {character.hunger:.1f}")
+            
+            # 检查吃完后是否还有食物，且饥饿度仍低于阈值
+            if character.hunger < 40:
+                has_more_food = FoodSystem.has_any_food(character)
+                if not has_more_food:
+                    print(f"[行动系统] ⚠️ {character.name} - 食物吃完但仍然饥饿 (饥饿度: {character.hunger:.1f})，切换到休息")
+                    ActionSystem.assign_action(character, ActionType.REST)
 
         elif character.current_action == ActionType.ENTERTAINMENT:
             # 娱乐恢复心情
@@ -67,10 +101,17 @@ class ActionSystem:
             print(f"[行动系统] {character.name} - 继续休息（疲劳未恢复到90）")
             return  # 继续休息，不切换状态
         
-        # 如果饥饿度低于40，去进食
+        # 如果饥饿度低于40，去进食（前提是有食物）
         if character.hunger < 40:
-            print(f"[行动系统] {character.name} - 决策：进食（饥饿度 {character.hunger:.1f} < 40）")
-            ActionSystem.assign_action(character, ActionType.EAT)
+            from .food_system import FoodSystem
+            has_food = FoodSystem.has_any_food(character)
+            
+            if has_food:
+                print(f"[行动系统] {character.name} - 决策：进食（饥饿度 {character.hunger:.1f} < 40）")
+                ActionSystem.assign_action(character, ActionType.EAT)
+            else:
+                print(f"[行动系统] ⚠️ {character.name} - 警告：饥饿但没有食物！优先休息（饥饿度 {character.hunger:.1f}）")
+                ActionSystem.assign_action(character, ActionType.REST)
         # 如果疲劳度低于40，去休息
         elif character.fatigue < 40:
             print(f"[行动系统] {character.name} - 决策：休息（疲劳度 {character.fatigue:.1f} < 40）")
