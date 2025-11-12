@@ -17,7 +17,7 @@ class Character:
         self.hunger = 100   # 饥饿度，100=饱腹，0=极度饥饿
         self.mood = 100     # 心情，100=极好，0=极度糟糕
         # 行动相关
-        self.current_action: ActionType = ActionType.IDLE  # 当前行动
+        self.current_action: ActionType = ActionType.REST  # 当前行动（初始为休息）
         self.action_duration = 0  # 行动持续时间（小时）
         # 劳动进度计数器（每种工作类型独立记录）
         self.work_progress = {
@@ -39,11 +39,7 @@ class Character:
         # 执行当前行动的效果
         ActionSystem.apply_action_effects(self)
 
-        # 自然状态变化（没有行动时的自然降低）
-        if self.current_action == ActionType.IDLE:
-            self.fatigue = max(0, self.fatigue - 2)  # 疲劳度自然降低（没有休息恢复得慢）
-            self.hunger = max(0, self.hunger - 3)     # 饥饿度自然降低
-            self.mood = max(0, self.mood - 1)         # 心情自然降低
+        # 移除了 IDLE 空闲状态，角色总是在做事情
 
         # 如果饥饿或疲劳过低，心情额外降低
         if self.hunger < 30:
@@ -52,8 +48,7 @@ class Character:
             self.mood = max(0, self.mood - 2)
 
         # 行动持续时间增加
-        if self.current_action != ActionType.IDLE:
-            self.action_duration += 1
+        self.action_duration += 1
 
     def assign_action(self, action: ActionType):
         """分配行动 - 委托给 ActionSystem"""

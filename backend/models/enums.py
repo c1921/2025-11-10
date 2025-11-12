@@ -16,5 +16,4 @@ class ActionType(str, Enum):
     FARMING = "farming"  # 种植
     EAT = "eat"          # 进食
     ENTERTAINMENT = "entertainment"  # 娱乐
-    IDLE = "idle"        # 空闲
 

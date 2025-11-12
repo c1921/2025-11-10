@@ -14,8 +14,7 @@ const actionLabels: Record<string, string> = {
   gathering: '采集浆果',
   farming: '种植',
   eat: '进食',
-  entertainment: '娱乐',
-  idle: '空闲'
+  entertainment: '娱乐'
 }
 
 // 行动类型的图标映射
@@ -26,8 +25,7 @@ const actionIcons: Record<string, string> = {
   gathering: '🫐',
   farming: '🌾',
   eat: '🍽️',
-  entertainment: '🎮',
-  idle: '💤'
+  entertainment: '🎮'
 }
 
 const getActionLabel = (action: string) => actionLabels[action] || action

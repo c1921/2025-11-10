@@ -79,13 +79,21 @@ class ActionSystem:
         elif character.mood < 50:
             print(f"[行动系统] {character.name} - 决策：娱乐（心情 {character.mood:.1f} < 50）")
             ActionSystem.assign_action(character, ActionType.ENTERTAINMENT)
-        # 如果状态都还不错，可以劳动
+        # 如果状态良好（疲劳>60且饥饿>60），可以劳动
         elif character.fatigue > 60 and character.hunger > 60:
             print(f"[行动系统] {character.name} - 决策：劳动（状态良好）")
             from .work_system import WorkSystem
             WorkSystem.choose_work_action(character)
-        # 否则空闲
+        # 状态不足以劳动，但也不紧急，优先恢复最低的状态
         else:
-            print(f"[行动系统] {character.name} - 决策：空闲（状态不足以劳动）")
-            ActionSystem.assign_action(character, ActionType.IDLE)
+            # 找出最需要恢复的状态
+            if character.hunger <= character.fatigue and character.hunger <= character.mood:
+                print(f"[行动系统] {character.name} - 决策：进食（饥饿度最低: {character.hunger:.1f}）")
+                ActionSystem.assign_action(character, ActionType.EAT)
+            elif character.fatigue <= character.mood:
+                print(f"[行动系统] {character.name} - 决策：休息（疲劳度最低: {character.fatigue:.1f}）")
+                ActionSystem.assign_action(character, ActionType.REST)
+            else:
+                print(f"[行动系统] {character.name} - 决策：娱乐（心情最低: {character.mood:.1f}）")
+                ActionSystem.assign_action(character, ActionType.ENTERTAINMENT)
 
