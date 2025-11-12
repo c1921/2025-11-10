@@ -1,4 +1,5 @@
 """角色模块 - 核心角色类"""
+import uuid
 from typing import TYPE_CHECKING
 from .enums import Gender, ActionType
 
@@ -10,6 +11,7 @@ class Character:
     """角色类 - 负责角色基础属性和状态管理"""
     
     def __init__(self, name: str, gender: Gender, inventory_slots: int = 20):
+        self.id = str(uuid.uuid4())  # 生成唯一UUID
         self.name = name
         self.gender = gender
         # 状态值（0-100）
@@ -88,6 +90,7 @@ class Character:
     def get_status_dict(self) -> dict:
         """获取角色状态数据"""
         return {
+            "id": self.id,
             "name": self.name,
             "gender": self.gender.value,
             "fatigue": round(self.fatigue, 1),

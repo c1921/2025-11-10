@@ -31,6 +31,7 @@ export interface Inventory {
 }
 
 export interface Character {
+  id: string
   name: string
   gender: string
   fatigue: number

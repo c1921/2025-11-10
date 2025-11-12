@@ -54,7 +54,7 @@ onMounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
           <CharacterCard
             v-for="char in characters"
-            :key="char.name"
+            :key="char.id"
             :character="char"
           />
         </div>
@@ -77,7 +77,7 @@ onMounted(() => {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <InventoryCard
             v-for="char in characters"
-            :key="char.name"
+            :key="char.id"
             :inventory="char.inventory"
             :title="`${char.name}的背包`"
             :is-public-storage="false"

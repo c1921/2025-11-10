@@ -30,6 +30,14 @@ def init_game_state(
     public_storage = public_storage_instance
 
 
+def get_character_by_id(character_id: str) -> Character:
+    """根据UUID查找角色"""
+    for char in characters:
+        if char.id == character_id:
+            return char
+    raise HTTPException(status_code=404, detail="Character not found")
+
+
 class TransferItemRequest(BaseModel):
     item_id: str
     quantity: int = 1
@@ -104,18 +112,11 @@ async def toggle_time():
     return {"status": status, "time": game_time.get_time_dict()}
 
 
-@router.post("/characters/{character_name}/action")
-async def set_character_action(character_name: str, action: str):
+@router.post("/characters/{character_id}/action")
+async def set_character_action(character_id: str, action: str):
     """手动设置角色行动"""
     # 查找角色
-    character = None
-    for char in characters:
-        if char.name == character_name:
-            character = char
-            break
-
-    if not character:
-        raise HTTPException(status_code=404, detail="Character not found")
+    character = get_character_by_id(character_id)
 
     # 验证行动类型
     try:
@@ -161,32 +162,17 @@ async def get_public_storage():
     return public_storage.get_dict()
 
 
-@router.get("/characters/{character_name}/inventory")
-async def get_character_inventory(character_name: str):
+@router.get("/characters/{character_id}/inventory")
+async def get_character_inventory(character_id: str):
     """获取角色背包信息"""
-    character = None
-    for char in characters:
-        if char.name == character_name:
-            character = char
-            break
-
-    if not character:
-        raise HTTPException(status_code=404, detail="Character not found")
-
+    character = get_character_by_id(character_id)
     return character.inventory.get_dict()
 
 
-@router.post("/characters/{character_name}/use-item")
-async def use_item(character_name: str, request: UseItemRequest):
+@router.post("/characters/{character_id}/use-item")
+async def use_item(character_id: str, request: UseItemRequest):
     """角色使用物品"""
-    character = None
-    for char in characters:
-        if char.name == character_name:
-            character = char
-            break
-
-    if not character:
-        raise HTTPException(status_code=404, detail="Character not found")
+    character = get_character_by_id(character_id)
 
     if request.item_id not in all_items:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -206,17 +192,10 @@ async def use_item(character_name: str, request: UseItemRequest):
         raise HTTPException(status_code=400, detail="Failed to use item")
 
 
-@router.post("/characters/{character_name}/take-from-storage")
-async def take_from_storage(character_name: str, request: TransferItemRequest):
+@router.post("/characters/{character_id}/take-from-storage")
+async def take_from_storage(character_id: str, request: TransferItemRequest):
     """从公共仓库取出物品到角色背包"""
-    character = None
-    for char in characters:
-        if char.name == character_name:
-            character = char
-            break
-
-    if not character:
-        raise HTTPException(status_code=404, detail="Character not found")
+    character = get_character_by_id(character_id)
 
     if request.item_id not in all_items:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -252,17 +231,10 @@ async def take_from_storage(character_name: str, request: TransferItemRequest):
         raise HTTPException(status_code=400, detail="Failed to remove item from storage")
 
 
-@router.post("/characters/{character_name}/put-to-storage")
-async def put_to_storage(character_name: str, request: TransferItemRequest):
+@router.post("/characters/{character_id}/put-to-storage")
+async def put_to_storage(character_id: str, request: TransferItemRequest):
     """从角色背包放入物品到公共仓库"""
-    character = None
-    for char in characters:
-        if char.name == character_name:
-            character = char
-            break
-
-    if not character:
-        raise HTTPException(status_code=404, detail="Character not found")
+    character = get_character_by_id(character_id)
 
     if request.item_id not in all_items:
         raise HTTPException(status_code=404, detail="Item not found")
